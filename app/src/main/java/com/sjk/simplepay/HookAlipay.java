@@ -25,6 +25,7 @@ import de.robv.android.xposed.XposedHelpers;
 import static com.sjk.simplepay.HookMain.RECEIVE_BILL_ALIPAY;
 import static com.sjk.simplepay.HookMain.RECEIVE_BILL_ALIPAY2;
 import static com.sjk.simplepay.HookMain.RECEIVE_QR_ALIPAY;
+import static com.sjk.simplepay.HookMain.MSGRECEIVED_ACTION;
 
 /**
  * @ Created by Dlg
@@ -108,7 +109,10 @@ public class HookAlipay {
                 XposedHelpers.findClass("com.alipay.transferprod.rpc.result.ConsultSetAmountRes", appClassLoader), new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-
+                        PayUtils.sendmsg(context, "Hook 二维码建成");
+                        String cookie = PayUtils.getAlipayCookieStr(appClassLoader);
+//                        PayUtils.sendmsg(context, "Cookie内容:"+cookie);
+                        PayUtils.twoPhaseCallDealAlipayWebTrade(context, cookie);
                         Field moneyField = XposedHelpers.findField(param.thisObject.getClass(), "g");
                         String money = (String) moneyField.get(param.thisObject);
 
@@ -137,6 +141,7 @@ public class HookAlipay {
                                 .putExtra("data", qrBean.toString())
                                 .setAction(RECEIVE_QR_ALIPAY);
                         context.sendBroadcast(broadCastIntent);
+
                     }
                 });
     }
@@ -157,22 +162,26 @@ public class HookAlipay {
                     @Override
                     protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                         try {
+
                             LogUtils.show("支付宝收到支付订单1");
                             Log.d("arik", "支付宝收到支付订单1");
 
                             String str = PayUtils.getMidText((String) XposedHelpers.callMethod(param.args[0],
                                     "toString", new Object[0]), "extraInfo='", "'").replace("\\", "");
-                            if ((str.contains("你的银行卡")) || (str.contains("通过支付宝"))) {
-                                //str = PayUtils.getAlipayCookieStr(appClassLoader);
-
-                                String money = PayUtils.getMidText(str,"转账","元已到账");
-                                String mark = PayUtils.getMidText(str,"{\"assistMsg1\":\"","通过支付宝");
+                            PayUtils.sendmsg(context, "支付宝收到支付订单1:"+str);
+                            if ((str.contains("你的银行卡")) || (str.contains("通过支付宝")) || str.contains("收款金额")) {
+                                String cookie = PayUtils.getAlipayCookieStr(appClassLoader);
+//                                PayUtils.sendmsg(context, "Cookie内容:"+cookie);
+//                                PayUtils.twoPhaseCallDealAlipayWebTrade(context, cookie);
+//                                PayUtils.test(context, cookie);
+                                String money = PayUtils.getMidText(cookie,"转账","元已到账");
+                                String mark = PayUtils.getMidText(cookie,"{\"assistMsg1\":\"","通过支付宝");
 
                                 QrBean qrBean = new QrBean();
                                 qrBean.setMoney(PayUtils.formatMoneyToCent(money));
                                 qrBean.setMark_sell(mark);
                                 qrBean.setChannel(QrBean.ALIPAYBANK);
-
+//
                                 Intent broadCastIntent = new Intent()
                                         .putExtra("data", qrBean.toString())
                                         .setAction(RECEIVE_BILL_ALIPAY);
@@ -195,8 +204,12 @@ public class HookAlipay {
                     String MessageInfo = (String) XposedHelpers.callMethod(object, "toString");
                     LogUtils.show(MessageInfo);
                     String content = PayUtils.getMidText(MessageInfo, "content='", "'");
+                    PayUtils.sendmsg(context, "支付宝收到支付订单2:"+content);
                     if (content.contains("二维码收款") || content.contains("收到一笔转账")
-                            || content.contains("成功收款")) {
+                            || content.contains("成功收款") || content.contains("收款金额")) {
+                        String cookie = PayUtils.getAlipayCookieStr(appClassLoader);
+//                        PayUtils.sendmsg(context, "Cookie内容:"+cookie);
+//                        PayUtils.twoPhaseCallDealAlipayWebTrade(context, cookie);
                         JSONObject jsonObject = JSON.parseObject(content);
                         String money = jsonObject.getString("content");
                         String mark = jsonObject.getString("assistMsg2");
@@ -217,6 +230,7 @@ public class HookAlipay {
                                 .putExtra("data", qrBean.toString())
                                 .setAction(RECEIVE_BILL_ALIPAY2);
                         context.sendBroadcast(broadCastIntent);
+                        PayUtils.sendmsg(context, qrBean.toString());
                     }
                 } catch (Exception e) {
                     LogUtils.show("支付宝订单获取错误：" + e.getMessage());
@@ -266,5 +280,6 @@ public class HookAlipay {
             e.printStackTrace();
         }
     }
+
 
 }

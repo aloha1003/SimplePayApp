@@ -12,6 +12,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.sjk.simplepay.utils.LogUtils;
+import com.sjk.simplepay.utils.PayUtils;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.XC_MethodHook;
@@ -40,6 +41,7 @@ public class HookMain implements IXposedHookLoadPackage {
     public static final String RECEIVE_BILL_WECHAT = "com.wechat.bill.receive";
     public static final String RECEIVE_BILL_ALIPAY = "com.alipay.bill.receive";
     public static final String RECEIVE_BILL_ALIPAY2 = "com.alipay.bill.receive2";
+    public static final String MSGRECEIVED_ACTION = "com.sjk.simplepay.msgreceived";
     public static final String RECEIVE_BILL_UNIONPAY = "com.unionpay.bill.receive";
 
 
@@ -105,7 +107,11 @@ public class HookMain implements IXposedHookLoadPackage {
                             intentFilter.addAction(ALIPAY_CREAT_QR);
                             context.registerReceiver(startAlipay, intentFilter);
                             LogUtils.show("SimplePay支付宝初始化成功");
+                            PayUtils.sendmsg(context, "SimplePay支付宝初始化成功:");
                             Toast.makeText(context, "SimplePay支付宝初始化成功", Toast.LENGTH_LONG).show();
+//                            String cookie = PayUtils.getAlipayCookieStr(appClassLoader);
+//                                                    PayUtils.sendmsg(context, "Cookie内容:"+cookie);
+//                            PayUtils.twoPhaseCallTest(context, cookie);
                             //开源也拒绝完全伸手党~~~^.^
                             new HookAlipay().hook(appClassLoader, context);
                         }
@@ -174,11 +180,11 @@ public class HookMain implements IXposedHookLoadPackage {
         public void onReceive(Context context, Intent intent) {
             LogUtils.show("获取支付宝二维码");
             try {
-//                Intent intent2 = new Intent(context, XposedHelpers.findClass("com.alipay.mobile.payee.ui.PayeeQRSetMoneyActivity", context.getClassLoader()));
-//                intent2.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//                intent2.putExtra("mark", intent.getStringExtra("mark"));
-//                intent2.putExtra("money", intent.getStringExtra("money"));
-//                context.startActivity(intent2);
+                Intent intent2 = new Intent(context, XposedHelpers.findClass("com.alipay.mobile.payee.ui.PayeeQRSetMoneyActivity", context.getClassLoader()));
+                intent2.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent2.putExtra("mark", intent.getStringExtra("mark"));
+                intent2.putExtra("money", intent.getStringExtra("money"));
+                context.startActivity(intent2);
             } catch (Exception e) {
                 LogUtils.show("启动支付宝失败：" + e.getMessage());
             }

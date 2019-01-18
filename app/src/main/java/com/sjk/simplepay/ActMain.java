@@ -4,8 +4,10 @@ import android.Manifest;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -18,29 +20,42 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import android.widget.Toast;
 
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.Volley;
 import com.hdl.logcatdialog.LogcatDialog;
 import com.sjk.simplepay.po.CommFunction;
 import com.sjk.simplepay.po.Configer;
+import com.sjk.simplepay.po.Constants;
 import com.sjk.simplepay.utils.HTTPSTrustManager;
+import com.sjk.simplepay.utils.LogUtils;
 import com.sjk.simplepay.utils.PayUtils;
 import com.sjk.simplepay.utils.ReceiveUtils;
 import com.sjk.simplepay.utils.SaveUtils;
 import com.sjk.tpay.BuildConfig;
 import com.sjk.tpay.R;
 
+import org.apache.http.HttpException;
+import org.apache.http.HttpRequest;
 import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import android.os.Message;
+import android.os.Handler;
+
+import de.robv.android.xposed.XposedBridge;
 
 import static com.sjk.simplepay.HookMain.UNIONPAY_CREAT_QR;
 
@@ -71,11 +86,34 @@ public class ActMain extends AppCompatActivity {
 
     private Button mBtnUnionpay;
 
+    public static TextView console;
 
+    private RequestQueue queue;
+    BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            switch (intent.getAction()) {
+                case Constants.MSGRECEIVED_ACTION:
+                    sendmsg(intent.getExtras().getString("data"));
+                    break;
+                case Constants.QUEUE_RECEIVE_ACTION:
+                    doQueueAction(intent);
+                        break;
+            }
+        }
+    };
+    private void doQueueAction(Intent intent) {
+        switch (intent.getExtras().getString("fun")) {
+            case "dealAlipayWebTrade":
+                PayUtils.dealAlipayWebTrade(this, intent.getExtras().getString("cookie"));
+                break;
+        }
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.act_main);
+
         mEdtUrl = ((TextInputLayout) findViewById(R.id.edt_act_main_url)).getEditText();
         mEdtToken = ((TextInputLayout) findViewById(R.id.edt_act_main_token)).getEditText();
         mEdtSN = ((TextInputLayout) findViewById(R.id.edt_act_main_sn)).getEditText();
@@ -87,10 +125,16 @@ public class ActMain extends AppCompatActivity {
         mBtnAlipay = findViewById(R.id.btn_alipay);
         mBtnUnionpay = findViewById(R.id.btn_unionpay);
         ((TextView) findViewById(R.id.txt_version)).setText("Ver：" + BuildConfig.VERSION_NAME);
-
+        console = findViewById(R.id.console_area);
 	    HTTPSTrustManager.allowAllSSL();
         getPermissions();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Constants.MSGRECEIVED_ACTION);
+        filter.addAction(Constants.QUEUE_RECEIVE_ACTION);
+        registerReceiver(broadcastReceiver, filter);
+
     }
+
 
     @Override
     protected void onResume() {
@@ -99,6 +143,7 @@ public class ActMain extends AppCompatActivity {
         mBtnWechat.setText(ServiceMain.mIsWechatRunning ? "停止微信服务" : "启动微信收款");
         mBtnAlipay.setText(ServiceMain.mIsAlipayRunning ? "停止支付服务" : "启动支付宝收款");
     }
+
 
     /**
      * 切换APP服务的运行状态
@@ -162,8 +207,8 @@ public class ActMain extends AppCompatActivity {
             Toast.makeText(ActMain.this, "微信版本不对！官方下载版本号：6.7.2", Toast.LENGTH_SHORT).show();
         }
         if (getPackageInfo(HookMain.ALIPAY_PACKAGE) != null
-                && !getPackageInfo(HookMain.ALIPAY_PACKAGE).versionName.contentEquals("10.1.35.828")) {
-            Toast.makeText(ActMain.this, "支付宝版本不对！官方下载版本号：10.1.35.828", Toast.LENGTH_SHORT).show();
+                && !getPackageInfo(HookMain.ALIPAY_PACKAGE).versionName.contentEquals("10.1.38.2139")) {
+            Toast.makeText(ActMain.this, "支付宝版本不对！官方下载版本号：10.1.38.2139", Toast.LENGTH_SHORT).show();
         }
 
         if (!changeStatus()) {
@@ -259,10 +304,10 @@ public class ActMain extends AppCompatActivity {
 
         CommFunction.getInstance().postEventBus(CommFunction.getInstance().updateAlipayStr(ServiceMain.mIsAlipayRunning));
 
-        /*Intent broadCastIntent = new Intent();
-        broadCastIntent.setAction(HookMain.RECEIVE_BILL_ALIPAY2);
-        HKApplication.app.sendBroadcast(broadCastIntent);*/
-
+//        Intent broadCastIntent = new Intent();
+//        broadCastIntent.setAction(HookMain.RECEIVE_BILL_ALIPAY2);
+//        HKApplication.app.sendBroadcast(broadCastIntent);
+//
 //        String time = System.currentTimeMillis() / 1000 + "";
 //        PayUtils.getInstance().creatAlipayQr(this, 12, "test" + time);
     }
@@ -319,7 +364,6 @@ public class ActMain extends AppCompatActivity {
     private void addStatusBar() {
         NotificationManager manager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
         manager.cancelAll();
-
         PendingIntent pi = PendingIntent.getActivity(this, 0, getIntent(), 0);
         Notification noti = new Notification.Builder(this)
                 .setTicker("程序启动成功")
@@ -394,4 +438,54 @@ public class ActMain extends AppCompatActivity {
         }
         onPermissionOk();
     }
+
+
+    public static Handler handler = new Handler()
+    {
+        public void handleMessage(Message paramAnonymousMessage)
+        {
+            String str = paramAnonymousMessage.getData().getString("log");
+            if (ActMain.console != null)
+            {
+                if (ActMain.console.getText() == null) {
+                    ActMain.console.setText(str);
+                }
+                if (ActMain.console.getText().toString().length() <= 20000) {
+                    ActMain.console.setText(ActMain.console.getText().toString() + "\n\n" + str);
+                } else {
+                                    ActMain.console.setText("日志定时清理完成...\n\n" + str);
+                }
+                ActMain.console.setMovementMethod(ScrollingMovementMethod.getInstance());
+            }
+            for (;;)
+            {
+                super.handleMessage(paramAnonymousMessage);
+                return;
+            }
+        }
+    };
+    public static void sendmsg(String paramString)
+    {
+        Message localMessage = new Message();
+        localMessage.what = 1;
+        Bundle localBundle = new Bundle();
+        Object localObject = new Date(System.currentTimeMillis());
+        localObject = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format((Date)localObject);
+        localBundle.putString("log", (String)localObject + ":" + paramString);
+        localMessage.setData(localBundle);
+        try
+        {
+            handler.sendMessage(localMessage);
+            return;
+        }
+        catch (Exception ex)
+        {
+            ex.printStackTrace();
+        }
+    }
+
+    protected void onDestroy() {
+        unregisterReceiver(broadcastReceiver);
+        super.onDestroy();
+    };
 }

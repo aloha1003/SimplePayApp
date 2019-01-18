@@ -86,7 +86,7 @@
         <!-- 模块描述，显示在xposed模块列表那里第二行 -->
         <meta-data
             android:name="xposeddescription"
-            android:value="SimplePay个人支付模块" />
+            android:value="玩乐通" />
 
         <!-- 最低xposed版本号(lib文件名可知) -->
         <meta-data

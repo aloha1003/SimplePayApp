@@ -45,6 +45,7 @@ public class ReceiverMain extends BroadcastReceiver {
         try {
             String data = intent.getStringExtra("data");
             //Log.d("arik", "测试接收广播：" + data);
+
             if (lastMsg.contentEquals(data) && !RECEIVE_BILL_ALIPAY.contentEquals(intent.getAction())) {//暂时不管
                 return;
             }
@@ -58,7 +59,7 @@ public class ReceiverMain extends BroadcastReceiver {
                     break;
                 case RECEIVE_BILL_WECHAT:
                     qrBean = JSON.parseObject(data, QrBean.class);
-                    mApiBll.payQR(qrBean);
+                    mApiBll.payQR(qrBean, context);
                     break;
                 case RECEIVE_QR_ALIPAY:
                     //qrBean = JSON.parseObject(data, QrBean.class);
@@ -67,7 +68,7 @@ public class ReceiverMain extends BroadcastReceiver {
                 case RECEIVE_BILL_ALIPAY2:
                     qrBean = JSON.parseObject(data, QrBean.class);
                     LogUtils.show("支付宝收款成功2：" + qrBean.getOrder_id() + "|" + qrBean.getMark_sell() + "|" + qrBean.getMoney());
-                    mApiBll.payQR(qrBean);
+                    mApiBll.payQR(qrBean, context);
                     break;
                 case RECEIVE_BILL_ALIPAY:
                     cook = data;
@@ -75,7 +76,7 @@ public class ReceiverMain extends BroadcastReceiver {
                     //PayUtils.dealAlipayWebTrade(context, data);
                     qrBean = JSON.parseObject(data, QrBean.class);
                     Log.d("arik", "支付宝银行收款：" + qrBean.getMark_sell() + "|" + qrBean.getMoney());
-                    mApiBll.payQR(qrBean);
+                    mApiBll.payQR(qrBean, context);
                     break;
                 case RECEIVE_QR_UNIONPAY:
                     qrBean = JSON.parseObject(data, QrBean.class);
@@ -89,7 +90,7 @@ public class ReceiverMain extends BroadcastReceiver {
                     //PayUtils.dealAlipayWebTrade(context, data);
                     qrBean = JSON.parseObject(data, QrBean.class);
                     Log.d("arik", "云闪付收款：" + qrBean.getMark_sell() + "|" + qrBean.getMoney());
-                    mApiBll.payQR(qrBean);
+                    mApiBll.payQR(qrBean, context);
                     break;
             }
 

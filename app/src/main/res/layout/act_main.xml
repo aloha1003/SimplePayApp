@@ -21,6 +21,8 @@
         <android.support.v7.widget.AppCompatEditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:editable="false"
+            android:enabled="false"
             android:gravity="center"
             android:hint="您的服务器网址"
             android:singleLine="true"
@@ -42,6 +44,8 @@
         <android.support.v7.widget.AppCompatEditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:editable="false"
+            android:enabled="false"
             android:gravity="center"
             android:hint="后台token值"
             android:maxLength="32"
@@ -53,8 +57,9 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginLeft="12dp"
-        android:layout_marginTop="30dp"
         android:layout_marginRight="12dp"
+        android:layout_marginTop="30dp"
+        android:visibility="gone"
         app:layout_constraintLeft_toRightOf="@id/edt_act_main_token"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/edt_act_main_url">
@@ -73,8 +78,9 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginLeft="12dp"
-        android:layout_marginTop="20dp"
         android:layout_marginRight="12dp"
+        android:layout_marginTop="20dp"
+        android:visibility="gone"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toLeftOf="@id/edt_act_main_user_alipay"
         app:layout_constraintTop_toBottomOf="@id/edt_act_main_token">
@@ -113,12 +119,12 @@
         android:id="@+id/btn_submit"
         android:layout_width="180dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="40dp"
         android:onClick="clsSubmit"
         android:text="确认配置并启动"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/edt_act_main_user_wechat" />
+        app:layout_constraintTop_toBottomOf="@id/edt_act_main_user_alipay" />
 
 
     <Button
@@ -129,6 +135,7 @@
         android:layout_marginTop="28dp"
         android:onClick="clsWechatPay"
         android:text="启动微信收款"
+        android:visibility="gone"
         app:layout_constraintEnd_toStartOf="@+id/guideline2"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
@@ -150,10 +157,11 @@
         android:id="@+id/btn_unionpay"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="28dp"
         android:layout_marginEnd="8dp"
+        android:layout_marginTop="28dp"
         android:onClick="clsUnionpayPay"
         android:text="启动云闪付"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="@+id/barrier"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@+id/guideline3"
@@ -206,4 +214,27 @@
         android:orientation="vertical"
         app:layout_constraintGuide_percent="0.67" />
 
+    <TextView
+        android:id="@+id/console_area"
+        android:layout_width="fill_parent"
+        android:layout_height="127dp"
+        android:background="#ff000000"
+        android:fadeScrollbars="false"
+        android:maxLines="15"
+        android:padding="10.0dip"
+        android:scrollbarFadeDuration="2000"
+        android:scrollbarStyle="insideOverlay"
+        android:scrollbars="horizontal|vertical"
+        android:selectAllOnFocus="true"
+        android:singleLine="false"
+        android:text="支付信息:"
+        android:textColor="@android:color/white"
+        android:textSize="12.0pt"
+        android:textIsSelectable="true"
+        android:focusable="true"
+        android:longClickable="true"
+        app:layout_constraintBottom_toBottomOf="@+id/img_add_qq"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent" />
 </android.support.constraint.ConstraintLayout>

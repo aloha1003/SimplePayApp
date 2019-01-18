@@ -30,7 +30,7 @@ import java.util.Map;
 public class FastJsonRequest extends JsonRequest<BaseMsg> {
 
     public FastJsonRequest(String url, Response.Listener<BaseMsg> listener, @Nullable Response.ErrorListener errorListener) {
-        super(Method.GET, url, null, listener, errorListener);
+        super(Method.POST, url, null, listener, errorListener);
         Log.i("arik", "FastJsonRequest: " + url);
         setRetryPolicy(new DefaultRetryPolicy(5000, 0, 0));
     }

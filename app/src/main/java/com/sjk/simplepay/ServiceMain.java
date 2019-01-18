@@ -53,7 +53,8 @@ public class ServiceMain extends Service {
 
     // 增加WebSocket方式，提高获单效率
     public WebSocketClient socketConnect;
-    private static final String wsUrl = Configer.getInstance().getUrl().replaceAll("http","ws") + "signalr-deviceHub";
+//    private static final String wsUrl = Configer.getInstance().getUrl().replaceAll("http","ws") + "Alipay/deviceHub";
+    private static final String wsUrl = Configer.getInstance().getSocketUrl() ;
     private static long lastHeartbeat = 0;
     private static int socketNum = 0;
 
@@ -64,7 +65,7 @@ public class ServiceMain extends Service {
     private PowerManager.WakeLock mWakeLock;
 
     private ApiBll mApiBll;
-
+    private static Service context;
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -74,20 +75,23 @@ public class ServiceMain extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        context = this;
         mLastQueryTime = System.currentTimeMillis();
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
         mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK | ACQUIRE_CAUSES_WAKEUP, "com.sjk.tpay:waketag");
         mWakeLock.acquire();
 
         mIsRunning = true;
-        Log.d("arik", "onCreate: 服务启动");
+        LogUtils.sendmsg(this, "onCreate: 服务启动");
         //LogUtils.show("服务启动");
         try {
-            //Log.d("arik", "onCreate: 尝试连接" + wsUrl);
+            //LogUtils.sendmsg(this, "onCreate: 尝试连接" + wsUrl);
+//            LogUtils.sendmsg(this, "onCreate: 尝试连接" + wsUrl);
             socketNum = 1;
             openSocket();
         }catch (Exception e){
-            Log.e("arik", "onCreate 出错:" + e.toString());
+//            Log.e("arik", "onCreate 出错:" + e.toString());
+//            LogUtils.sendmsg(this, "服务结果:"+ e.toString());
             reconnectToServer();
         }
         ReceiveUtils.startReceive();
@@ -150,18 +154,20 @@ public class ServiceMain extends Service {
         //if(!mIsRunning) return;
 
         if(socketConnect==null){
-            Log.d("arik", "openSocket: 尝试连接 ");
+//            LogUtils.sendmsg(context, "openSocket: 尝试连接 ");
             socketConnect = new WebSocketClient(new URI(wsUrl)) {
                 @Override
                 public void onOpen(ServerHandshake handshakedata) {
-                    Log.d("arik", "WebSocket onOpen");
+//                    LogUtils.sendmsg(context, "WebSocket onOpen");
                     try {
                         JSONObject obj = new JSONObject();
                         obj.put("protocol", "json");
                         obj.put("version", 1);
+                        obj.put("command", "open");
                         sendMsg(obj.toString()+(char)0x1e);
                     }catch (Exception e){
                         e.printStackTrace();
+
                     }
                 }
                 @Override
@@ -176,29 +182,29 @@ public class ServiceMain extends Service {
                             UpdateAccounts();
                             mAccountChanged = false;
                         }
-                        Log.i("arik", "心跳包");
+                        LogUtils.sendmsg(context, "心跳包");
                         return;
                     }
 
-                    Log.i("arik", "服务器返回：" + message);
+//                    LogUtils.sendmsg(context, "服务器返回：" + message);
 
                     // 握手成功后，登陆
-                    if(CommFunction.getType(message)==0){
-                        Log.d("arik", "握手成功");
-                        try {
-                            sendMsg(CommFunction.getInstance().getLoginString());
-                            Timer timer = new Timer();
-                            timer.schedule(new TimerTask() {
-                                @Override
-                                public void run() {
-                                    sendMsg(CommFunction.formateMessage("hello"));
-                                }
-                            }, 5000);
-                        }catch (Exception e){
-
-                        }
-                        lastHeartbeat = System.currentTimeMillis();
-                    }
+//                    if(CommFunction.getType(message)==0){
+//                        LogUtils.sendmsg(context, "握手成功");
+//                        try {
+//                            sendMsg(CommFunction.getInstance().getLoginString());
+//                            Timer timer = new Timer();
+//                            timer.schedule(new TimerTask() {
+//                                @Override
+//                                public void run() {
+//                                    sendMsg(CommFunction.formateMessage("hello"));
+//                                }
+//                            }, 5000);
+//                        }catch (Exception e){
+//
+//                        }
+//                        lastHeartbeat = System.currentTimeMillis();
+//                    }
 
                     //收到生成二维码任务
                     JSONArray qrTask = CommFunction.getArgument(message,"ReceiveQRTaskFromServer");
@@ -206,7 +212,7 @@ public class ServiceMain extends Service {
                         try {
                             switch (qrTask.get(0).toString().toLowerCase()){
                                 case "wechat":
-                                    Log.d("arik", "准备生成微信二维码...");
+                                    LogUtils.sendmsg(context, "准备生成微信二维码...");
                                     PayUtils.getInstance().creatWechatQr(HKApplication.app, (int)qrTask.get(1), (String) qrTask.get(2));
                                     break;
                                 case "alipay":
@@ -224,7 +230,7 @@ public class ServiceMain extends Service {
                                     sendMsg(v2);
                                     break;
                                 case "unionpay":
-                                    Log.d("arik", "准备生成云闪付二维码...");
+                                    LogUtils.sendmsg(context, "准备生成云闪付二维码...");
                                     PayUtils.getInstance().creatUnionpayQr(HKApplication.app, (int)qrTask.get(1), (String) qrTask.get(2));
                                     break;
                             }
@@ -237,15 +243,15 @@ public class ServiceMain extends Service {
                     if(state==null) return;
                     switch (state){
                         case "[40001]"://设备登录成功
-                            Log.d("arik", "登陆成功");
-                            mApiBll.checkQR();
-                            UpdateAccounts();
+//                            LogUtils.sendmsg(context, "登陆成功");
+//                            mApiBll.checkQR();
+//                            UpdateAccounts();
                             break;
                         case "[10001]"://设备登录失败
-                            Log.d("arik", "设备登陆失败");
+                            LogUtils.sendmsg(context, "设备登陆失败");
                             break;
                         case "[10002]"://设备登录过期
-                            Log.d("arik", "设备连接状态过期，需要关闭后重新连接");
+                            LogUtils.sendmsg(context, "设备连接状态过期，需要关闭后重新连接");
                             //socketConnect.reconnect();
                             sendMsg(CommFunction.getInstance().getLoginString());
                             break;
@@ -270,7 +276,7 @@ public class ServiceMain extends Service {
                 }
                 @Override
                 public void onClose(int code, String reason, boolean remote) {
-                    Log.d("arik", "WebSocket onClose,reason:"+reason + "   " + remote + "   "+code);
+//                    LogUtils.sendmsg(context, "WebSocket onClose,reason:"+reason + "   " + remote + "   "+code);
                     socketNum -= 1;
                     if(socketNum == 0) {
                         final Timer timer = new Timer();
@@ -296,7 +302,7 @@ public class ServiceMain extends Service {
         }
         else
         {
-            Log.d("arik","已建立连接，不重复操作");
+            LogUtils.sendmsg(this,"已建立连接，不重复操作");
         }
     }
 
@@ -320,7 +326,7 @@ public class ServiceMain extends Service {
 
     public void reconnectToServer()
     {
-        Log.d("arik", "reconnectToServer: 进入函数，lockReconnect为" + socketNum);
+//        LogUtils.sendmsg(this, "reconnectToServer: 进入函数，lockReconnect为" + socketNum);
         if(socketNum != 0) return;
 
         socketNum = 1;
@@ -331,9 +337,9 @@ public class ServiceMain extends Service {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                Log.d("arik", "reconnectToServer:重连服务器");
+//                LogUtils.sendmsg(context, "reconnectToServer:重连服务器");
                 try {
-                    Log.d("arik", "reconnect: 尝试用WebSocket连接服务器");
+//                    LogUtils.sendmsg(context, "reconnect: 尝试用WebSocket连接服务器");
                     openSocket();
                 } catch (Exception e) {
                     Log.e("arik", "reconnectToServer 出错:" + e.toString());
@@ -354,9 +360,9 @@ public class ServiceMain extends Service {
     public void sendMsg(String msg) {
         try {
             socketConnect.send(msg);
-            Log.d("arik", "发送信息: " + msg);
+//            LogUtils.sendmsg(this, "发送信息: " + msg);
         } catch (Exception e) {
-            Log.d("arik", "sendMsg error: " + e.toString());
+            LogUtils.sendmsg(this, "sendMsg error: " + e.toString());
         }
     }
 

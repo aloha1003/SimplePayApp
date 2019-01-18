@@ -17,14 +17,16 @@ public class CommFunction {
     public static String formateMessage(String func, Object... args){
         JSONObject msgObj = new JSONObject();
         try {
-            msgObj.put("type", 1);
             msgObj.put("target", func);
+            msgObj.put("command", func);
+
+//            msgObj.put("channel", "AlipayDevice");
             JSONArray arguments = new JSONArray();
             for (Object i:args){
                 arguments.put(i);
             }
             msgObj.put("arguments",arguments);
-            return msgObj.toString()+(char)0x1e;
+            return msgObj.toString();
         }catch (Exception e){
 
         }

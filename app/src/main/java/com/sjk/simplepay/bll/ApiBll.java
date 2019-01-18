@@ -1,6 +1,7 @@
 package com.sjk.simplepay.bll;
 
 
+import android.content.Context;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -19,9 +20,14 @@ import com.sjk.simplepay.utils.SaveUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import com.sjk.simplepay.ServiceMain;
+import com.sjk.simplepay.utils.StringUtils;
 
 /**
  * @ Created by Dlg
@@ -31,7 +37,7 @@ import com.sjk.simplepay.ServiceMain;
  */
 public class ApiBll {
     private RequestQueue mQueue;
-    private static final String httpUrl = Configer.getInstance().getUrl() + "Pay/Phone";
+    private static final String httpUrl = Configer.getInstance().getUrl() + "api/channel_notify/alipayFix";
 
     public ApiBll() {
         mQueue = Volley.newRequestQueue(HKApplication.app);
@@ -65,50 +71,142 @@ public class ApiBll {
      * @param mark_sell 收款方的备注
      */
     public void sendQR(String url, String mark_sell) throws UnsupportedEncodingException {
-        StringBuilder stringBuilder = new StringBuilder(httpUrl)
-                .append("?command=addqr")
-                .append("&url=")
-                .append(URLEncoder.encode(url, "utf-8"))
-                .append("&mark_sell=")
-                .append(URLEncoder.encode(mark_sell, "utf-8"))
-                .append("&sn=")
-                .append(URLEncoder.encode(Configer.getInstance().getSN(), "utf-8"));
-        mQueue.add(new FastJsonRequest(stringBuilder.toString(), succ, null));
+        Map<String,String> apiRequestMap = new HashMap<>();
+        apiRequestMap.put("command", "addqr");
+        apiRequestMap.put("url", url);
+        apiRequestMap.put("c_o_id", mark_sell);
+//        StringBuilder stringBuilder = new StringBuilder(httpUrl)
+//                .append("?command=addqr")
+//                .append("&url=")
+//                .append(URLEncoder.encode(url, "utf-8"))
+//                .append("&mark_sell=")
+//                .append(URLEncoder.encode(mark_sell, "utf-8"))
+//                .append("&sn=")
+//                .append(URLEncoder.encode(Configer.getInstance().getSN(), "utf-8"));
+        mQueue.add(new FastJsonRequest(getRequestString(apiRequestMap), succ, null));
         //LogUtils.show(stringBuilder.toString());
         dealTaskList();
     }
 
+    public String getRequestString(Map<String,String> requestMap) throws UnsupportedEncodingException {
+        StringBuilder stringBuilder = new StringBuilder(httpUrl);
+        stringBuilder.append("?");
+        requestMap = StringUtils.signCreate(requestMap);
+        for(Map.Entry<String, String> entry : requestMap.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            stringBuilder = stringBuilder.append(key);
+            stringBuilder = stringBuilder.append("=");
+            stringBuilder = stringBuilder.append(URLEncoder.encode(value, "utf-8"));
+            stringBuilder = stringBuilder.append("&");
+        }
+//        stringBuilder = stringBuilder.append("sign=");
+//        stringBuilder = stringBuilder.append("=");
+//
+//
+//        stringBuilder = stringBuilder.append(URLEncoder.encode(StringUtils.signCreate(requestMap), "utf-8"));
+        return stringBuilder.toString();
+    }
 
+    private String toMoney(int t) {
+        DecimalFormat df = new DecimalFormat("0.0");
+        String money = df.format((float)t/100);
+        return money;
+    }
     /**
      * 向服务器发送支付成功的消息
      * 如果因为一些原因，暂时没有通知成功，会保存任务，下次再尝试
      *
      * @param qrBean 订单详情信息
      */
+    public void payQR(final QrBean qrBean, final Context context) {
+        try {
+            Map<String,String> apiRequestMap = new HashMap<>();
+            apiRequestMap.put("command", "do");
+            apiRequestMap.put("c_o_id", qrBean.getMark_sell());
+            apiRequestMap.put("amount", toMoney(qrBean.getMoney()));
+            apiRequestMap.put("p_o_id", qrBean.getOrder_id());
+            apiRequestMap.put("alipay_account", Configer.getInstance().getUserAlipay());
+
+//            url = new StringBuilder(httpUrl)
+//                    .append("?command=do")
+//                    .append("&mark_sell=")
+//                    .append(URLEncoder.encode(qrBean.getMark_sell(), "utf-8"))
+//                    .append("&money=")
+//                    .append(qrBean.getMoney())
+//                    .append("&order_id=")
+//                    .append(URLEncoder.encode(qrBean.getOrder_id(), "utf-8"))
+//                    .append("&mark_buy=")
+//                    .append(URLEncoder.encode(qrBean.getMark_buy(), "utf-8"))
+//                    .append("&sn=")
+//                    .append(URLEncoder.encode(Configer.getInstance().getSN(), "utf-8"));
+
+
+            String r = getRequestString(apiRequestMap);
+            PayUtils.sendmsg(context, "apiRequestMap:"+apiRequestMap.toString());
+            PayUtils.sendmsg(context, "getRequestString:"+r);
+            mQueue.add(new FastJsonRequest(r, null, new Response.ErrorListener() {
+
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Log.i("arik", "get出错: " + error);
+
+                    if(error.networkResponse.data!=null) {
+                        try {
+                            String body = new String(error.networkResponse.data,"UTF-8");
+                            PayUtils.sendmsg(context, "補單錯誤:"+body);
+                        } catch (UnsupportedEncodingException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    if (error == null || error.networkResponse == null || error.networkResponse.statusCode < 500) {
+                        //如果是服务器错误，自己检查代码，不然会一直发送成功订单造成多次支付！
+//                        addTaskList(qrBean);
+                    }
+                }
+            }));
+            mQueue.start();
+        } catch (Exception e) {
+            PayUtils.sendmsg(context, "payQRError:"+e.getMessage());
+            addTaskList(qrBean);
+        }
+    }
+
     public void payQR(final QrBean qrBean) {
         StringBuilder url = null;
         try {
-            url = new StringBuilder(httpUrl)
-                    .append("?command=do")
-                    .append("&mark_sell=")
-                    .append(URLEncoder.encode(qrBean.getMark_sell(), "utf-8"))
-                    .append("&money=")
-                    .append(qrBean.getMoney())
-                    .append("&order_id=")
-                    .append(URLEncoder.encode(qrBean.getOrder_id(), "utf-8"))
-                    .append("&mark_buy=")
-                    .append(URLEncoder.encode(qrBean.getMark_buy(), "utf-8"))
-                    .append("&sn=")
-                    .append(URLEncoder.encode(Configer.getInstance().getSN(), "utf-8"));
+
+            Map<String,String> apiRequestMap = new HashMap<>();
+            apiRequestMap.put("command", "do");
+            apiRequestMap.put("c_o_id", qrBean.getMark_sell());
+            apiRequestMap.put("amount", toMoney(qrBean.getMoney()));
+            apiRequestMap.put("p_o_id", qrBean.getOrder_id());
+            apiRequestMap.put("alipay_account", Configer.getInstance().getUserAlipay());
+
+//            url = new StringBuilder(httpUrl)
+//                    .append("?command=do")
+//                    .append("&mark_sell=")
+//                    .append(URLEncoder.encode(qrBean.getMark_sell(), "utf-8"))
+//                    .append("&money=")
+//                    .append(qrBean.getMoney())
+//                    .append("&order_id=")
+//                    .append(URLEncoder.encode(qrBean.getOrder_id(), "utf-8"))
+//                    .append("&mark_buy=")
+//                    .append(URLEncoder.encode(qrBean.getMark_buy(), "utf-8"))
+//                    .append("&sn=")
+//                    .append(URLEncoder.encode(Configer.getInstance().getSN(), "utf-8"));
             LogUtils.show(url.toString());
-            mQueue.add(new FastJsonRequest(url.toString(), null, new Response.ErrorListener() {
+
+            String r = getRequestString(apiRequestMap);
+
+            mQueue.add(new FastJsonRequest(r, null, new Response.ErrorListener() {
 
                 @Override
                 public void onErrorResponse(VolleyError error) {
                     Log.i("arik", "get出错: " + error);
                     if (error == null || error.networkResponse == null || error.networkResponse.statusCode < 500) {
                         //如果是服务器错误，自己检查代码，不然会一直发送成功订单造成多次支付！
-                        addTaskList(qrBean);
+//                        addTaskList(qrBean);
                     }
                 }
             }));
@@ -117,8 +215,6 @@ public class ApiBll {
             addTaskList(qrBean);
         }
     }
-
-
     /**
      * 处理以前没有完成的任务
      */

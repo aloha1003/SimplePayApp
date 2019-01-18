@@ -14,21 +14,22 @@ public class Configer {
 
     private static Configer mConfiger;
 
-    private String url = "http://p1.expal.io/";
+    private String url = "http://payment.exigodev.com/";
+    private String socketUrl = "ws://payment.exigodev.com:6009/";
 
     /**
      * 长度为8位，和服务端要设置为一样
      */
-    private String token = "";
+    private String token = "N2pUPlH88tHgjRxax";
 
     /**
      * 服务器phone.php文件的真实文件名，改了的话，别人不方便恶意去访问
      */
-    private String sn = android.os.Build.SERIAL;
+    private String sn = "N2pUPlH88tHgjRxa";
 
     private String user_wechat = "wxid_"+(int) ((Math.random() * 9 + 1) * 1000);
 
-    private String user_alipay = "2088****";
+    private String user_alipay = "2088231646491648";
 
     private String user_unionpay = "姓名";
 
@@ -48,6 +49,9 @@ public class Configer {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+    public String getSocketUrl() {
+        return socketUrl;
     }
 
     public String getToken() {

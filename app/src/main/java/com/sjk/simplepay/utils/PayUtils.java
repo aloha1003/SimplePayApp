@@ -3,6 +3,7 @@ package com.sjk.simplepay.utils;
 import android.content.Context;
 import android.content.Intent;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -12,18 +13,36 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.Volley;
 import com.sjk.simplepay.bll.ApiBll;
 import com.sjk.simplepay.po.AliBillList;
+import com.sjk.simplepay.po.Configer;
+import com.sjk.simplepay.po.Constants;
 import com.sjk.simplepay.po.QrBean;
 import com.sjk.simplepay.request.StringRequestGet;
 import com.sjk.simplepay.HookMain;
 import com.sjk.simplepay.ReceiverMain;
 
+import org.apache.http.HttpException;
+import org.apache.http.HttpRequest;
+
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import de.robv.android.xposed.XposedHelpers;
+
+import static com.sjk.simplepay.HookMain.MSGRECEIVED_ACTION;
+import static com.sjk.simplepay.HookMain.RECEIVE_QR_ALIPAY;
+
 
 /**
  * @ Created by Dlg
@@ -118,11 +137,14 @@ public class PayUtils {
                 return (String) XposedHelpers.callStaticMethod(XposedHelpers.findClass("com.alipay.mobile.common.transport.http.GwCookieCacheHelper", paramClassLoader), "getCookie", new Object[]{".alipay.com"});
             }
             LogUtils.show("支付宝订单Cookies获取异常");
+            sendmsg(localContext, "支付宝订单Cookies获取异常");
             return "";
         }
         LogUtils.show("支付宝Context获取异常");
+        sendmsg(localContext, "支付宝订单Cookies获取异常2");
         return "";
     }
+
 
 
     /**
@@ -136,11 +158,28 @@ public class PayUtils {
         long l = System.currentTimeMillis() + 200000;//怕手机的时间比支付宝慢了点，刚产生的订单就无法获取到
         String getUrl = "https://mbillexprod.alipay.com/enterprise/simpleTradeOrderQuery.json?beginTime=" + (l - 864000000L)
                 + "&limitTime=" + l + "&pageSize=20&pageNum=1&channelType=ALL";
+        //改用 fundAccountDetail
+//         getUrl = "https://mbillexprod.alipay.com/enterprise/fundAccountDetail.json?startDateInput=" + (l - 864000000L)
+//                + "&endDateInput=" + l + "&pageSize=20&pageNum=1&channelType=ALL&queryEntrance=1&billUserId="+ Configer.getInstance().getUserAlipay()+"showType=0&type=trade&sortTarget=tradeTime&order=descend&sortType=0&_input_charset=gbk";
+
+//        StringBuilder stringBuilder = new StringBuilder(httpUrl);
+//        stringBuilder.append("?");
+//        requestMap = StringUtils.signCreate(requestMap);
+//        for(Map.Entry<String, String> entry : requestMap.entrySet()) {
+//            String key = entry.getKey();
+//            String value = entry.getValue();
+//            stringBuilder = stringBuilder.append(key);
+//            stringBuilder = stringBuilder.append("=");
+//            stringBuilder = stringBuilder.append(URLEncoder.encode(value, "utf-8"));
+//            stringBuilder = stringBuilder.append("&");
+//        }
         StringRequestGet request = new StringRequestGet(getUrl, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 try {
-                    /*JSONObject jsonObject = JSON.parseObject(response);
+//                    sendmsg(context, "dealAlipayWebTradeResponse:"+response);
+                    LogUtils.show("dealAlipayWebTradeResponse："+response);
+                    JSONObject jsonObject = JSON.parseObject(response);
                     List<AliBillList> aliBillLists = jsonObject.getJSONObject("result")
                             .getJSONArray("list").toJavaList(AliBillList.class);
 
@@ -151,12 +190,13 @@ public class PayUtils {
                     }
                     for (AliBillList aliBillList : aliBillLists) {
                         //20分钟前的订单就忽略
-                        if (System.currentTimeMillis() - aliBillList.getGmtCreateStamp().getTime() > ALIPAY_BILL_TIME) {
-                            break;
-                        }
+//                        if (System.currentTimeMillis() - aliBillList.getGmtCreateStamp().getTime() > ALIPAY_BILL_TIME) {
+//                            break;
+//                        }
 
                         //首次，或者上次一样，就返回
                         if (list.contains(aliBillList.getTradeNo())) {
+//                            sendmsg(context, "最新的订单都已经处理过，那就直接返回");
                             continue;//最新的订单都已经处理过，那就直接返回
                         }
                         list.add(aliBillList.getTradeNo());
@@ -167,7 +207,7 @@ public class PayUtils {
                     if (list.size() > 100) {
                         list.subList(0, 50).clear();
                     }
-                    saveUtils.putJson(SaveUtils.BILL_LIST_LAST, list).commit();*/
+                    saveUtils.putJson(SaveUtils.BILL_LIST_LAST, list).commit();
                 } catch (Exception e) {
                     LogUtils.show("支付宝订单获取网络错误" + e.getMessage());
                 }
@@ -175,11 +215,12 @@ public class PayUtils {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
+                sendmsg(context, "支付宝订单获取网络错误"+error.getMessage());
                 LogUtils.show("支付宝订单获取网络错误，请不要设置代理");
             }
         });
-
-        String dataNow = new SimpleDateFormat("yyyy-MM-dd").format(new Date(l));
+        Date localDate = new Date(System.currentTimeMillis());
+        String dataNow = new SimpleDateFormat("yyyy-MM-dd").format(localDate);
         String dataLastDay = new SimpleDateFormat("yyyy-MM-dd").format(new Date(l - 864000000L));
 
         request.addHeaders("Cookie", cookies)
@@ -201,8 +242,9 @@ public class PayUtils {
      * @param money   单位为分
      * @param cookies
      */
-    private static void getAlipayTradeDetail(Context context, final String tradeNo, final int money, String cookies) {
+    private static void getAlipayTradeDetail(final Context context, final String tradeNo, final int money, String cookies) {
         String getUrl = "https://tradeeportlet.alipay.com/wireless/tradeDetail.htm?tradeNo=" + tradeNo + "&source=channel&_from_url=https%3A%2F%2Frender.alipay.com%2Fp%2Fz%2Fmerchant-mgnt%2Fsimple-order._h_t_m_l_%3Fsource%3Dmdb_card";
+//        sendmsg(context, "getAlipayTradeDetail Url"+getUrl);
         StringRequestGet request = new StringRequestGet(getUrl, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -224,7 +266,7 @@ public class PayUtils {
 
                     tmp = getMidText(html, "<divclass=\"am-flexbox-item\">说</div><divclass=\"am-flexbox-item\">明", "<divclass=\"am-list-itemtrade-info-item\">");
                     qrBean.setMark_sell(getMidText(tmp, "<divclass=\"trade-info-value\">", "</div"));
-
+                    sendmsg(context,"qrBean："+qrBean.toString());
                     //tmp = getMidText(html, "am-flexbox-item\">金</div><divclass=\"am-flexbox-item\">额", "<divclass=\"am-list-itemtrade-info-item\">");
                     //Float money = Float.valueOf(getMidText(tmp, "<divclass=\"trade-info-value\">", "</div")) * 100;
                     qrBean.setMoney(money);
@@ -235,13 +277,15 @@ public class PayUtils {
                     }
                     ReceiverMain.setmLastSucc(0);
                     LogUtils.show("支付宝发送支付成功任务：" + tradeNo + "|" + qrBean.getMark_sell() + "|" + qrBean.getMoney());
-                    new ApiBll().payQR(qrBean);
+                    sendmsg(context,"支付宝发送支付成功任务：" + tradeNo + "|" + qrBean.getMark_sell() + "|" + qrBean.getMoney());
+                    new ApiBll().payQR(qrBean, context);
                 } catch (Exception ignore) {
                 }
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
+                sendmsg(context, "支付宝订单详情获取错误"+tradeNo + "-->" + error.getMessage());
                 LogUtils.show("支付宝订单详情获取错误：" + tradeNo + "-->" + error.getMessage());
             }
         });
@@ -298,5 +342,19 @@ public class PayUtils {
         }
         return yuan;
     }
-	
+
+    public static void sendmsg(final Context context, String data) {
+        Intent broadCastIntent = new Intent()
+                .putExtra("data", data)
+                .setAction(Constants.MSGRECEIVED_ACTION);
+        context.sendBroadcast(broadCastIntent);
+    }
+    public static void twoPhaseCallDealAlipayWebTrade(final Context context, final String cookies) {
+        Intent broadCastIntent = new Intent()
+                .putExtra("fun", "dealAlipayWebTrade")
+                .putExtra("cookie",  cookies)
+                .setAction(Constants.QUEUE_RECEIVE_ACTION);
+        context.sendBroadcast(broadCastIntent);
+    }
+
 }

@@ -1,5 +1,7 @@
 package com.sjk.simplepay.utils;
 
+import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 
 import de.robv.android.xposed.XposedBridge;
@@ -12,7 +14,7 @@ import de.robv.android.xposed.XposedBridge;
  * @ QQ群：524901982
  */
 public class LogUtils {
-
+    public static String MSGRECEIVED_ACTION = "com.sjk.simplepay.msgreceived";
     public static void show(String tips) {
         try {
             XposedBridge.log(tips);
@@ -20,6 +22,16 @@ public class LogUtils {
 
         }
         Log.e("LogUtils", tips);
+    }
+
+    public static void sendmsg(Context paramContext, String paramString)
+    {
+        Log.d("LogUtils", "sendmsg");
+        Intent localIntent = new Intent();
+        localIntent.putExtra("data", paramString);
+        Log.d("LogUtils", paramString);
+        localIntent.setAction(MSGRECEIVED_ACTION);
+        paramContext.sendBroadcast(localIntent);
     }
 
 }
