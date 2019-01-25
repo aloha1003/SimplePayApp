@@ -21,12 +21,16 @@
         <android.support.v7.widget.AppCompatEditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:editable="false"
-            android:enabled="false"
+            android:editable="true"
             android:gravity="center"
-            android:hint="您的服务器网址"
+            android:inputType="none"
+
+            android:textIsSelectable="true"
+
+            android:focusable="false"
+            android:hint="您的服务器站台"
             android:singleLine="true"
-            android:text="http://127.0.0.1" />
+            android:text="" />
     </android.support.design.widget.TextInputLayout>
 
 
@@ -37,6 +41,7 @@
         android:layout_marginLeft="12dp"
         android:layout_marginTop="30dp"
         android:layout_marginRight="12dp"
+        android:visibility="gone"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toLeftOf="@id/edt_act_main_sn"
         app:layout_constraintTop_toBottomOf="@id/edt_act_main_url">
@@ -44,8 +49,6 @@
         <android.support.v7.widget.AppCompatEditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:editable="false"
-            android:enabled="false"
             android:gravity="center"
             android:hint="后台token值"
             android:maxLength="32"
@@ -54,7 +57,7 @@
 
     <android.support.design.widget.TextInputLayout
         android:id="@+id/edt_act_main_sn"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="12dp"
         android:layout_marginRight="12dp"
@@ -68,7 +71,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:hint="硬件序列号"
+            android:hint="后台密鑰"
             android:singleLine="true"
             android:text="(未获取)" />
     </android.support.design.widget.TextInputLayout>
@@ -81,6 +84,7 @@
         android:layout_marginRight="12dp"
         android:layout_marginTop="20dp"
         android:visibility="gone"
+        app:layout_constraintHorizontal_chainStyle="spread"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toLeftOf="@id/edt_act_main_user_alipay"
         app:layout_constraintTop_toBottomOf="@id/edt_act_main_token">
@@ -99,32 +103,51 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginLeft="12dp"
-        android:layout_marginTop="20dp"
         android:layout_marginRight="12dp"
+        android:layout_marginTop="20dp"
         app:layout_constraintLeft_toRightOf="@id/edt_act_main_user_wechat"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/edt_act_main_token">
+
+        app:layout_constraintTop_toBottomOf="@id/edt_act_main_sn">
 
         <android.support.v7.widget.AppCompatEditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:hint="支付宝账号"
+            android:hint="支付宝账号別名"
             android:singleLine="true"
             android:text="2088xxxx" />
     </android.support.design.widget.TextInputLayout>
 
+    <android.support.design.widget.TextInputLayout
+        android:id="@+id/edt_act_main_alipay_current_amount"
+        android:layout_width="372dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:layout_marginRight="20dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/edt_act_main_user_alipay">
+
+        <android.support.v7.widget.AppCompatEditText
+            android:layout_width="349dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:gravity="center"
+            android:hint="支付寶當前餘額"
+            android:text="299" />
+    </android.support.design.widget.TextInputLayout>
 
     <Button
         android:id="@+id/btn_submit"
         android:layout_width="180dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="40dp"
-        android:onClick="clsSubmit"
+
         android:text="确认配置并启动"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/edt_act_main_user_alipay" />
+        app:layout_constraintTop_toBottomOf="@id/edt_act_main_alipay_current_amount" />
 
 
     <Button
@@ -146,7 +169,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="28dp"
-        android:onClick="clsAlipayPay"
+
         android:text="启动支付宝"
         app:layout_constraintEnd_toStartOf="@+id/guideline3"
         app:layout_constraintHorizontal_bias="0.0"
@@ -167,22 +190,12 @@
         app:layout_constraintStart_toStartOf="@+id/guideline3"
         app:layout_constraintTop_toBottomOf="@id/btn_submit" />
 
-    <ImageView
-        android:id="@+id/img_add_qq"
-        android:layout_width="22dp"
-        android:layout_height="30dp"
-        android:layout_marginBottom="8dp"
-        android:onClick="clsAddQq"
-        android:src="@mipmap/log"
-        app:layout_constraintBottom_toTopOf="@+id/txt_version"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent" />
-
     <TextView
         android:id="@+id/txt_version"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="10dp"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent" />
@@ -219,21 +232,19 @@
         android:layout_width="fill_parent"
         android:layout_height="127dp"
         android:background="#ff000000"
-        android:fadeScrollbars="false"
-        android:maxLines="15"
+        android:visibility="gone"
+        android:maxLines="30"
         android:padding="10.0dip"
         android:scrollbarFadeDuration="2000"
         android:scrollbarStyle="insideOverlay"
-        android:scrollbars="horizontal|vertical"
+        android:scrollbars="vertical"
         android:selectAllOnFocus="true"
+        android:gravity="bottom"
         android:singleLine="false"
         android:text="支付信息:"
         android:textColor="@android:color/white"
         android:textSize="12.0pt"
-        android:textIsSelectable="true"
-        android:focusable="true"
-        android:longClickable="true"
-        app:layout_constraintBottom_toBottomOf="@+id/img_add_qq"
+
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent" />

@@ -7,6 +7,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.support.multidex.MultiDex;
+import android.support.multidex.MultiDexApplication;
+
 
 import java.util.Iterator;
 import java.util.List;
@@ -18,10 +20,10 @@ import java.util.List;
  * @ <p>Description: 这个类完全没有用哈，自己以前框架扒过来其实发现没必要去全局hook重启了</p>
  * @ date:  2018/09/11
  */
-public class HKApplication extends Application {
+public class HKApplication extends MultiDexApplication {
 
     public static Context app;
-
+    public static HKApplication mInstance;
     @Override
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
@@ -40,6 +42,7 @@ public class HKApplication extends Application {
         }
 
         app = this;
+        mInstance = this;
         // 程序崩溃时触发线程  以下用来捕获程序崩溃异常并重启应用
         Thread.setDefaultUncaughtExceptionHandler(restartHandler);
     }
@@ -91,5 +94,13 @@ public class HKApplication extends Application {
         intent.putExtra("auto", true);
         app.startActivity(intent);
         android.os.Process.killProcess(android.os.Process.myPid());  //结束进程之前可以把你程序的注销或者退出代码放在这段代码之前
+    }
+    public static Context getContext()
+    {
+        return app;
+    }
+    public static HKApplication getInstance()
+    {
+        return mInstance;
     }
 }

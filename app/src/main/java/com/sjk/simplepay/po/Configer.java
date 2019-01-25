@@ -14,22 +14,25 @@ public class Configer {
 
     private static Configer mConfiger;
 
-    private String url = "http://payment.exigodev.com/";
-    private String socketUrl = "ws://payment.exigodev.com:6009/";
+    private String url = "http://api.diarypay.com/";
+    private String siteName = "日日寶";
+    private String socketUrl = "ws://api.diarypay.com:6001/";
+
+    private String currentAmount = "100";
 
     /**
      * 长度为8位，和服务端要设置为一样
      */
-    private String token = "N2pUPlH88tHgjRxax";
+    private String token = "Ryw7Td0uJVL78ZhP";
 
     /**
      * 服务器phone.php文件的真实文件名，改了的话，别人不方便恶意去访问
      */
-    private String sn = "N2pUPlH88tHgjRxa";
+    private String sn = "Ryw7Td0uJVL78ZhP";
 
     private String user_wechat = "wxid_"+(int) ((Math.random() * 9 + 1) * 1000);
 
-    private String user_alipay = "2088231646491648";
+    private String user_alipay = "B045";
 
     private String user_unionpay = "姓名";
 
@@ -49,6 +52,15 @@ public class Configer {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+
+    public String getSiteName() {
+        return siteName == null ? "" : siteName;
+    }
+
+    public void setSiteName(String siteName) {
+        this.siteName = siteName;
     }
     public String getSocketUrl() {
         return socketUrl;
@@ -94,6 +106,12 @@ public class Configer {
         this.user_alipay = user_alipay;
     }
 
+    public void setCurrentAmount(String currentAmount) {
+        this.currentAmount = currentAmount;
+    }
+    public String getCurrentAmount(){
+        return this.currentAmount;
+    }
     @Override
     public String toString() {
         return JSON.toJSONString(this);

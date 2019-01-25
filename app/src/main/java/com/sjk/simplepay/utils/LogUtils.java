@@ -27,9 +27,22 @@ public class LogUtils {
     public static void sendmsg(Context paramContext, String paramString)
     {
         Log.d("LogUtils", "sendmsg");
+        Log.d("LogUtils", paramString);
         Intent localIntent = new Intent();
         localIntent.putExtra("data", paramString);
+
+        localIntent.setAction(MSGRECEIVED_ACTION);
+        paramContext.sendBroadcast(localIntent);
+    }
+    public static void sendmsg(Context paramContext, String paramString, Boolean isDebug)
+    {
+        Log.d("LogUtils", "sendmsg");
         Log.d("LogUtils", paramString);
+        Intent localIntent = new Intent();
+        localIntent.putExtra("data", paramString);
+        if (isDebug) {
+            localIntent.putExtra("isDebug", isDebug);
+        }
         localIntent.setAction(MSGRECEIVED_ACTION);
         paramContext.sendBroadcast(localIntent);
     }

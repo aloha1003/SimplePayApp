@@ -4,6 +4,7 @@ import android.content.IntentFilter;
 
 import com.sjk.simplepay.HKApplication;
 import com.sjk.simplepay.ReceiverMain;
+import com.sjk.simplepay.po.Constants;
 
 import static com.sjk.simplepay.HookMain.RECEIVE_BILL_ALIPAY;
 import static com.sjk.simplepay.HookMain.RECEIVE_BILL_ALIPAY2;
@@ -30,6 +31,7 @@ public class ReceiveUtils {
             filter.addAction(RECEIVE_BILL_ALIPAY);
             filter.addAction(RECEIVE_BILL_ALIPAY2);
             filter.addAction(RECEIVE_BILL_UNIONPAY);
+            filter.addAction(Constants.CURRENT_AMOUNT_UPDATE_STEP_ONE);
             HKApplication.app.registerReceiver(new ReceiverMain(), filter);
         }
     }

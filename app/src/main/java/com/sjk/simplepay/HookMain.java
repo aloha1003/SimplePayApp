@@ -107,7 +107,7 @@ public class HookMain implements IXposedHookLoadPackage {
                             intentFilter.addAction(ALIPAY_CREAT_QR);
                             context.registerReceiver(startAlipay, intentFilter);
                             LogUtils.show("SimplePay支付宝初始化成功");
-                            PayUtils.sendmsg(context, "SimplePay支付宝初始化成功:");
+                            PayUtils.sendmsg(context, "SimplePay支付宝初始化成功:", true);
                             Toast.makeText(context, "SimplePay支付宝初始化成功", Toast.LENGTH_LONG).show();
 //                            String cookie = PayUtils.getAlipayCookieStr(appClassLoader);
 //                                                    PayUtils.sendmsg(context, "Cookie内容:"+cookie);
@@ -181,10 +181,18 @@ public class HookMain implements IXposedHookLoadPackage {
             LogUtils.show("获取支付宝二维码");
             try {
                 Intent intent2 = new Intent(context, XposedHelpers.findClass("com.alipay.mobile.payee.ui.PayeeQRSetMoneyActivity", context.getClassLoader()));
-                intent2.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent2.addFlags(Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
                 intent2.putExtra("mark", intent.getStringExtra("mark"));
                 intent2.putExtra("money", intent.getStringExtra("money"));
                 context.startActivity(intent2);
+//                while (!intent.getStringExtra("type").equals("solidcode"))
+//                {
+//                    Intent localIntent;
+//                    return;
+//                }
+//                intent = new Intent(paramContext, XposedHelpers.findClass("com.alipay.mobile.payee.ui.PayeeQRActivity", paramContext.getClassLoader()));
+//                intent.addFlags(Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+//                intent.startActivity(paramIntent);
             } catch (Exception e) {
                 LogUtils.show("启动支付宝失败：" + e.getMessage());
             }

@@ -14,6 +14,7 @@ import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.JsonRequest;
 import com.sjk.simplepay.po.BaseMsg;
 import com.sjk.simplepay.po.Configer;
+import com.sjk.simplepay.utils.LogUtils;
 import com.sjk.simplepay.utils.StrEncode;
 
 import java.io.UnsupportedEncodingException;
@@ -35,6 +36,13 @@ public class FastJsonRequest extends JsonRequest<BaseMsg> {
         setRetryPolicy(new DefaultRetryPolicy(5000, 0, 0));
     }
 
+    public FastJsonRequest(String url,  Response.Listener<BaseMsg> listener, @Nullable Response.ErrorListener errorListener, int method) {
+        super(method, url, null, listener, errorListener);
+        Log.i("arik", "FastJsonRequest: " + url);
+        setRetryPolicy(new DefaultRetryPolicy(5000, 0, 0));
+    }
+
+
 
     @Override
     public Map<String, String> getHeaders() throws AuthFailureError {
@@ -48,9 +56,10 @@ public class FastJsonRequest extends JsonRequest<BaseMsg> {
     @Override
     protected Response<BaseMsg> parseNetworkResponse(NetworkResponse response) {
         try {
+            LogUtils.show("收到回應 parseNetworkResponse 為：" + response.toString());
             String jsonString = new String(response.data,
                     HttpHeaderParser.parseCharset(response.headers, PROTOCOL_CHARSET));
-            Log.i("arik", "get返回值: " + jsonString);
+            LogUtils.show( "get返回值: " + jsonString);
             return Response.success(
                     JSON.parseObject(jsonString, BaseMsg.class), HttpHeaderParser.parseCacheHeaders(response));
         } catch (UnsupportedEncodingException e) {

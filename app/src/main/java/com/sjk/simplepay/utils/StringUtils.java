@@ -1,5 +1,6 @@
 package com.sjk.simplepay.utils;
 
+import android.util.Base64;
 import android.util.Log;
 
 import com.sjk.simplepay.po.Configer;
@@ -64,7 +65,7 @@ public class StringUtils {
 
 //            String secret = PreferenceHelper.getString("api_key", AppConst.API_ACCOUNT_KEY);
             String secret = Configer.getInstance().getSN();
-            String message = "Message";
+
 
             Mac sha256_HMAC = Mac.getInstance("HmacSHA256");
             SecretKeySpec secret_key = new SecretKeySpec(secret.getBytes(), "HmacSHA256");

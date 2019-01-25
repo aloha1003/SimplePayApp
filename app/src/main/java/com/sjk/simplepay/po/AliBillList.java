@@ -18,6 +18,7 @@ public class AliBillList {
 //    private String gmtCreate;
 //    private String tradeRefundAmount;
     private String tradeNo;
+    private String tradeTransAmount;
     private Date gmtCreateStamp;
     //    private String tradeTransAmount;
     private Float totalAmount;
@@ -37,6 +38,15 @@ public class AliBillList {
     public String getTradeNo() {
         return tradeNo == null ? "" : tradeNo;
     }
+
+    public String getTradeTransAmount() {
+        return tradeTransAmount == null ? "" : tradeTransAmount;
+    }
+
+    public void setTradeTransAmount(String tradeTransAmount) {
+        this.tradeTransAmount = tradeTransAmount;
+    }
+
 
     public void setTradeNo(String tradeNo) {
         this.tradeNo = tradeNo;

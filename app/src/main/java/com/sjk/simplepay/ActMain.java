@@ -25,6 +25,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
@@ -32,6 +33,9 @@ import android.widget.Toast;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.hdl.logcatdialog.LogcatDialog;
 import com.sjk.simplepay.po.CommFunction;
 import com.sjk.simplepay.po.Configer;
@@ -55,7 +59,10 @@ import java.util.List;
 import android.os.Message;
 import android.os.Handler;
 
+
 import de.robv.android.xposed.XposedBridge;
+import de.robv.android.xposed.XposedHelpers;
+import android.text.method.ScrollingMovementMethod;
 
 import static com.sjk.simplepay.HookMain.UNIONPAY_CREAT_QR;
 
@@ -69,6 +76,7 @@ import static com.sjk.simplepay.HookMain.UNIONPAY_CREAT_QR;
 public class ActMain extends AppCompatActivity {
 
     private EditText mEdtUrl;
+
 
     private EditText mEdtToken;
 
@@ -126,13 +134,26 @@ public class ActMain extends AppCompatActivity {
         mBtnUnionpay = findViewById(R.id.btn_unionpay);
         ((TextView) findViewById(R.id.txt_version)).setText("Ver：" + BuildConfig.VERSION_NAME);
         console = findViewById(R.id.console_area);
+        console.setMovementMethod(ScrollingMovementMethod.getInstance());
+        console.setGravity(80);
 	    HTTPSTrustManager.allowAllSSL();
         getPermissions();
         IntentFilter filter = new IntentFilter();
         filter.addAction(Constants.MSGRECEIVED_ACTION);
         filter.addAction(Constants.QUEUE_RECEIVE_ACTION);
+//        filter.addAction(Constants.ALIPAY_CREAT_QR);
         registerReceiver(broadcastReceiver, filter);
+//        String response = "{\"data\":{\"amount\":\"131.00\",\"mark_sell\":\"B045-5C41BD1578F16\",\"id\":38482,\"url\":\"\",\"money\":\"131.00\",\"channel\":\"alipay\",\"orderInfo\":\"B045-5C41BD1578F16\"},\"message\":\"\",\"status\":0}";
+//        JsonElement jelement = new JsonParser().parse(response);
+//        JsonObject jobject = jelement.getAsJsonObject();
+////        JSONObject.parseObject(JSONObject.toJSONString(response)).get("data");
+////        com.alibaba.fastjson.JSONObject json = (com.alibaba.fastjson.JSONObject) com.alibaba.fastjson.JSONObject.parseObject(com.alibaba.fastjson.JSONObject.toJSONString(response));
+//        LogUtils.show("JSON"+jobject.getAsJsonObject("data"));
+    }
 
+    public  void sendPay(String mark, String money, String paramString3, String channel) {
+                LogUtils.show("支付宝日志：正常启动支付宝");
+        PayUtils.isAppRunning(this, "com.eg.android.AlipayGphone");
     }
 
 
@@ -152,8 +173,8 @@ public class ActMain extends AppCompatActivity {
      */
     private boolean changeStatus() {
         ServiceMain.mIsRunning = !ServiceMain.mIsRunning;
-        mBtnSubmit.setText(ServiceMain.mIsRunning ? "停止服务" : "确认配置并启动");
-
+        String statusText = ServiceMain.mIsRunning ? "停止服务" : "确认配置并启动";
+        mBtnSubmit.setText(statusText);
         if(!ServiceMain.mIsRunning)
         {
             if(ServiceMain.mIsWechatRunning) changeWechatStatus();
@@ -207,10 +228,10 @@ public class ActMain extends AppCompatActivity {
             Toast.makeText(ActMain.this, "微信版本不对！官方下载版本号：6.7.2", Toast.LENGTH_SHORT).show();
         }
         if (getPackageInfo(HookMain.ALIPAY_PACKAGE) != null
-                && !getPackageInfo(HookMain.ALIPAY_PACKAGE).versionName.contentEquals("10.1.38.2139")) {
-            Toast.makeText(ActMain.this, "支付宝版本不对！官方下载版本号：10.1.38.2139", Toast.LENGTH_SHORT).show();
+                && !getPackageInfo(HookMain.ALIPAY_PACKAGE).versionName.contentEquals("10.1.35.828")) {
+//            Toast.makeText(ActMain.this, "支付宝版本不对！官方下载版本号：10.1.35.828", Toast.LENGTH_SHORT).show();
         }
-
+        //10.1.35.828
         if (!changeStatus()) {
             return;
         }
@@ -223,19 +244,19 @@ public class ActMain extends AppCompatActivity {
             changeStatus();
             return;
         }
-        if(!mEdtUrl.getText().toString().startsWith("http"))
-        {
-            Toast.makeText(ActMain.this, "请输入正确的网址！", Toast.LENGTH_SHORT).show();
-            changeStatus();
-            return;
-        }
-        if (!mEdtUrl.getText().toString().endsWith("/")) {
-            mEdtUrl.setText(mEdtUrl.getText().toString() + "/");//保持以/结尾的网址
-        }
+//        if(!mEdtUrl.getText().toString().startsWith("http"))
+//        {
+//            Toast.makeText(ActMain.this, "请输入正确的网址！", Toast.LENGTH_SHORT).show();
+//            changeStatus();
+//            return;
+//        }
+//        if (!mEdtUrl.getText().toString().endsWith("/")) {
+//            mEdtUrl.setText(mEdtUrl.getText().toString() + "/");//保持以/结尾的网址
+//        }
 
         //下面开始获取最新配置并启动服务。
-        Configer.getInstance()
-                .setUrl(mEdtUrl.getText().toString());
+//        Configer.getInstance()
+//                .setUrl(mEdtUrl.getText().toString());
         Configer.getInstance()
                 .setToken(mEdtToken.getText().toString());
         Configer.getInstance()
@@ -347,7 +368,7 @@ public class ActMain extends AppCompatActivity {
      * 当获取到权限后才操作的事情
      */
     private void onPermissionOk() {
-        mEdtUrl.setText(Configer.getInstance().getUrl());
+        mEdtUrl.setText(Configer.getInstance().getSiteName());
         mEdtToken.setText(Configer.getInstance().getToken());
         mEdtSN.setText(Configer.getInstance().getSN());
         mEdtUserWechat.setText(Configer.getInstance().getUserWechat());
@@ -451,9 +472,9 @@ public class ActMain extends AppCompatActivity {
                     ActMain.console.setText(str);
                 }
                 if (ActMain.console.getText().toString().length() <= 20000) {
-                    ActMain.console.setText(ActMain.console.getText().toString() + "\n\n" + str);
+                    ActMain.console.append("\n\n" + str);
                 } else {
-                                    ActMain.console.setText("日志定时清理完成...\n\n" + str);
+                    ActMain.console.setText("日志定时清理完成...\n\n" + str);
                 }
                 ActMain.console.setMovementMethod(ScrollingMovementMethod.getInstance());
             }

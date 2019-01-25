@@ -34,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.XC_MethodHook;
+import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
@@ -81,6 +82,7 @@ public class HookUnionpay {
      * @param context2
      */
     public void hook(ClassLoader appClassLoader, final Context context2) {
+        hookSafeCheck(appClassLoader);
         context = context2;
         try {
             init(appClassLoader,context2);
@@ -90,6 +92,40 @@ public class HookUnionpay {
         }
     }
 
+    private void hookSafeCheck(ClassLoader classLoader) {
+        try {
+            Class<?> securityCheckClazz = XposedHelpers.findClass("com.unionpay.mobile.utils.g", classLoader);
+            XposedHelpers.findAndHookMethod(securityCheckClazz, "d", String.class, String.class, String.class, new XC_MethodHook() {
+                @Override
+                protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                    Object object = param.getResult();
+                    XposedHelpers.setBooleanField(object, "d", false);
+                    param.setResult(object);
+                    super.afterHookedMethod(param);
+                }
+            });
+            XposedHelpers.findAndHookMethod(securityCheckClazz, "d", Class.class, String.class, String.class, new XC_MethodReplacement() {
+                @Override
+                protected Object replaceHookedMethod(MethodHookParam param) throws Throwable {
+                    return true;
+                }
+            });
+            XposedHelpers.findAndHookMethod(securityCheckClazz, "d", ClassLoader.class, String.class, new XC_MethodReplacement() {
+                @Override
+                protected Object replaceHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+                    return true;
+                }
+            });
+            XposedHelpers.findAndHookMethod(securityCheckClazz, "d", new XC_MethodReplacement() {
+                @Override
+                protected Object replaceHookedMethod(MethodHookParam param) throws Throwable {
+                    return true;
+                }
+            });
+        } catch (Error | Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     private void init(final ClassLoader appClassLoader,Context context) {
         try {

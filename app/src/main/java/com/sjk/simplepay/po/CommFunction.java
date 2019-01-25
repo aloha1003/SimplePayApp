@@ -7,6 +7,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import com.sjk.simplepay.ServiceMain;
+import java.sql.Timestamp;
 
 public class CommFunction {
     private static final CommFunction INSTANCE  = new CommFunction();
@@ -74,7 +75,8 @@ public class CommFunction {
     public String getLoginString(){
         String deviceAddress = Configer.getInstance().getSN();//android.os.Build.SERIAL;
         String password = Configer.getInstance().getToken();
-        return formateMessage("DeviceLogin",deviceAddress,deviceAddress,password);
+
+        return formateMessage("DeviceLogin" ,deviceAddress,deviceAddress,password);
     }
 
     public String updateWechatStr(Boolean active){

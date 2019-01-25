@@ -3,12 +3,16 @@ package com.sjk.simplepay;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.alibaba.fastjson.JSON;
 import com.sjk.simplepay.bll.ApiBll;
+import com.sjk.simplepay.po.Configer;
+import com.sjk.simplepay.po.Constants;
 import com.sjk.simplepay.po.QrBean;
 import com.sjk.simplepay.utils.LogUtils;
+import com.sjk.simplepay.utils.PayUtils;
 
 import static com.sjk.simplepay.HookMain.RECEIVE_BILL_ALIPAY;
 import static com.sjk.simplepay.HookMain.RECEIVE_BILL_ALIPAY2;
@@ -17,7 +21,7 @@ import static com.sjk.simplepay.HookMain.RECEIVE_BILL_WECHAT;
 import static com.sjk.simplepay.HookMain.RECEIVE_QR_ALIPAY;
 import static com.sjk.simplepay.HookMain.RECEIVE_QR_WECHAT;
 import static com.sjk.simplepay.HookMain.RECEIVE_QR_UNIONPAY;
-
+import java.math.BigDecimal;
 
 /**
  * @ Created by Dlg
@@ -41,7 +45,7 @@ public class ReceiverMain extends BroadcastReceiver {
     }
 
     @Override
-    public void onReceive(Context context, Intent intent) {
+    public void onReceive(final Context context, Intent intent) {
         try {
             String data = intent.getStringExtra("data");
             //Log.d("arik", "测试接收广播：" + data);
@@ -54,7 +58,7 @@ public class ReceiverMain extends BroadcastReceiver {
             switch (intent.getAction()) {
                 case RECEIVE_QR_WECHAT:
                     QrBean qrBean = JSON.parseObject(data, QrBean.class);
-                    mApiBll.sendQR(qrBean.getUrl(), qrBean.getMark_sell());
+                    mApiBll.sendQR(qrBean.getUrl(), qrBean.getMark_sell(), context);
                     Log.d("arik", "发送了QR");
                     break;
                 case RECEIVE_BILL_WECHAT:
@@ -62,13 +66,25 @@ public class ReceiverMain extends BroadcastReceiver {
                     mApiBll.payQR(qrBean, context);
                     break;
                 case RECEIVE_QR_ALIPAY:
-                    //qrBean = JSON.parseObject(data, QrBean.class);
-                    //mApiBll.sendQR(qrBean.getUrl(), qrBean.getMark_sell());
+                    Log.d("arik", "发送了支付寶QR");
+                    qrBean = JSON.parseObject(data, QrBean.class);
+                    mApiBll.sendQR(qrBean.getUrl(), qrBean.getMark_sell(), context);
                     break;
                 case RECEIVE_BILL_ALIPAY2:
                     qrBean = JSON.parseObject(data, QrBean.class);
                     LogUtils.show("支付宝收款成功2：" + qrBean.getOrder_id() + "|" + qrBean.getMark_sell() + "|" + qrBean.getMoney());
                     mApiBll.payQR(qrBean, context);
+                    break;
+                case Constants.CURRENT_AMOUNT_UPDATE_STEP_ONE:
+                    String currentAmountText = Configer.getInstance().getCurrentAmount();
+                    BigDecimal currentAmount  = new BigDecimal(currentAmountText);
+                    LogUtils.show("updateCurrentAmount currentAmount"+currentAmount);
+                    BigDecimal amount  = new BigDecimal(data);
+                    currentAmount = currentAmount.add(amount);
+                    Intent broadCastIntent = new Intent()
+                            .putExtra("amount", currentAmount.toString())
+                            .setAction(Constants.CURRENT_AMOUNT_UPDATE);
+                    context.sendBroadcast(broadCastIntent);
                     break;
                 case RECEIVE_BILL_ALIPAY:
                     cook = data;
@@ -81,8 +97,13 @@ public class ReceiverMain extends BroadcastReceiver {
                 case RECEIVE_QR_UNIONPAY:
                     qrBean = JSON.parseObject(data, QrBean.class);
                     //mApiBll.payQR(qrBean);
-                    mApiBll.sendQR(qrBean.getUrl(), qrBean.getMark_sell());
+                    mApiBll.sendQR(qrBean.getUrl(), qrBean.getMark_sell(), context);
                     Log.d("arik", "发送了云闪付QR");
+                    break;
+                case Constants.LOGINIDRECEIVED_ACTION:
+                    String loginid = intent.getStringExtra("loginid");
+                    String type = intent.getStringExtra("type");
+                    PayUtils.sendmsg(context, "当前登录支付宝账号：" + loginid);
                     break;
                 case RECEIVE_BILL_UNIONPAY:
                     cook = data;
@@ -91,6 +112,9 @@ public class ReceiverMain extends BroadcastReceiver {
                     qrBean = JSON.parseObject(data, QrBean.class);
                     Log.d("arik", "云闪付收款：" + qrBean.getMark_sell() + "|" + qrBean.getMoney());
                     mApiBll.payQR(qrBean, context);
+                    break;
+                case Constants.SAVEALIPAYCOOKIE_ACTION:
+                    PayUtils.updateAlipayCookie(context, lastMsg);
                     break;
             }
 
@@ -101,7 +125,7 @@ public class ReceiverMain extends BroadcastReceiver {
                     new android.os.Handler().postDelayed(new Runnable() {
                         @Override
                         public void run() {
-                            mApiBll.dealTaskList();
+                            mApiBll.dealTaskList(context);
                         }
                     }, 5000);
             }

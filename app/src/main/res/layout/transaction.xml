@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:n1="http://schemas.android.com/apk/res/android"
+    n1:layout_width="fill_parent"
+    n1:layout_height="match_parent"
+    n1:background="#fff5f5f5"
+    n1:orientation="vertical">
+
+    <LinearLayout
+        n1:layout_width="wrap_content"
+        n1:layout_height="100dip"
+        n1:layout_gravity="center"
+        n1:layout_marginTop="10.0pt"
+        n1:gravity="center"
+        n1:orientation="vertical"
+        n1:padding="6.0pt"
+        n1:visibility="visible">
+
+        <TextView
+            n1:id="@+id/currentamount"
+            n1:layout_width="wrap_content"
+            n1:layout_height="wrap_content"
+            n1:background="@drawable/bg_white"
+            n1:padding="5.0pt"
+            n1:text="當前餘額:0"
+            n1:textColor="#ff0284dc"
+            n1:textSize="11.0pt" />
+    </LinearLayout>
+    <TextView
+        n1:layout_width="wrap_content"
+        n1:layout_height="wrap_content"
+        n1:text="交易來往資訊:"
+        />
+    <TextView
+        n1:id="@+id/console"
+        n1:layout_width="fill_parent"
+        n1:layout_height="232dip"
+        n1:layout_marginTop="10.0pt"
+        n1:background="#ff000000"
+        n1:fadeScrollbars="false"
+        n1:padding="20.0dip"
+        n1:scrollbarFadeDuration="2000"
+        n1:scrollbarStyle="insideOverlay"
+        n1:scrollbars="vertical"
+
+        n1:textColor="@android:color/white"
+        n1:textSize="12.0pt" />
+    <TextView
+        n1:layout_width="wrap_content"
+        n1:layout_height="wrap_content"
+        n1:text="工程師除錯區:"
+        />
+    <TextView
+        n1:id="@+id/console_debug"
+        n1:layout_width="fill_parent"
+        n1:layout_height="232dip"
+        n1:layout_marginTop="10.0pt"
+        n1:background="#ff000000"
+        n1:fadeScrollbars="false"
+        n1:padding="20.0dip"
+        n1:scrollbarFadeDuration="2000"
+        n1:scrollbarStyle="insideOverlay"
+        n1:scrollbars="vertical"
+        n1:textColor="@android:color/white"
+        n1:textSize="12.0pt" />
+</LinearLayout>
