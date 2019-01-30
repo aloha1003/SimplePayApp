@@ -22,6 +22,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
+import com.sjk.simplepay.EchoService;
+import com.sjk.simplepay.ServiceMain;
 import com.sjk.simplepay.activity.fragments.ConfigureFragment;
 import com.sjk.simplepay.activity.fragments.TransactionLogFragement;
 import com.sjk.simplepay.module.presenter.MainPresenter;
@@ -42,6 +44,7 @@ import java.util.List;
 public class MainActivity extends BaseActivity implements IMainView {
     private static Context context;
     private MainPresenter mMainPresenter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,6 +58,8 @@ public class MainActivity extends BaseActivity implements IMainView {
 //        filter.addAction(Constants.ALIPAY_CREAT_QR);
         registerReceiver(broadcastReceiver, filter);
 
+
+
     }
 
     public static Context getAppContext() {
@@ -64,7 +69,6 @@ public class MainActivity extends BaseActivity implements IMainView {
     protected void initViews(Bundle savedInstanceState) {
         mMainPresenter = new MainPresenter();
         mMainPresenter.attachView(this);
-        Log.d("XX","initViews");
     }
 
 
@@ -133,7 +137,6 @@ public class MainActivity extends BaseActivity implements IMainView {
             switch (act) {
                 case "updateCurrentAmount":
                     str = paramAnonymousMessage.getData().getString("currentAmount");
-                    LogUtils.show("updateCurrentAmountWTF");
                     TransactionLogFragement.currentAmountView.setText("當前餘額:"+str);
                     ConfigureFragment.mEdtUserAlipayCurrentAmount.setText(str);
                     Configer.getInstance().setCurrentAmount(str);

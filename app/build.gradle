@@ -2,8 +2,9 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion ANDROID_COMPILE_SDK_VERSION as int
+//    compileSdkVersion 28
+//    buildToolsVersion '27.0.3'
 //    buildToolsVersion ANDROID_BUILD_TOOLS_VERSION
-
     useLibrary 'org.apache.http.legacy'
     defaultConfig {
         applicationId "com.sjk.simplepay"
@@ -11,6 +12,10 @@ android {
         targetSdkVersion ANDORID_TARGET_SDK_VERSION as int
         versionCode VERSION_CODE as int
         versionName VERSION_NAME
+//        minSdkVersion 19
+//        targetSdkVersion 28
+//        versionCode 8
+//        versionName 'arik 0.8.1'
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
         ndk {
@@ -41,12 +46,16 @@ android {
             shrinkResources false//是否去除无用资源
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
+            debuggable true
         }
         debug {
             signingConfig signingConfigs.debug
         }
     }
     //useLibrary 'org.apache.http.legacy'
+    productFlavors {
+    }
+
 }
 
 dependencies {

@@ -16,7 +16,7 @@ public class Configer {
 
     private String url = "http://api.diarypay.com/";
     private String siteName = "日日寶";
-    private String socketUrl = "ws://api.diarypay.com:6001/";
+    private String socketUrl = "http://payment.exigodev.com:6001/";
 
     private String currentAmount = "100";
 
@@ -34,7 +34,7 @@ public class Configer {
 
     private String user_alipay = "B045";
 
-    private String user_unionpay = "姓名";
+    private String user_unionpay = "CLD01";
 
     public synchronized static Configer getInstance() {
         if (mConfiger == null) {

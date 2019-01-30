@@ -50,7 +50,10 @@ public class ServiceMain extends Service {
     public static Boolean mIsAlipayRunning = false;
     public static Boolean mIsUnionpayRunning = false;
     public static Boolean mAccountChanged = false;
-    public static Boolean useWithServer = false;
+    public static Boolean useWithServer = true;
+
+
+    public  static  EchoService ecs;
 
     // 增加WebSocket方式，提高获单效率
     public WebSocketClient socketConnect;
@@ -76,7 +79,9 @@ public class ServiceMain extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+
         context = this;
+
         mLastQueryTime = System.currentTimeMillis();
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
         mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK | ACQUIRE_CAUSES_WAKEUP, "com.sjk.tpay:waketag");
@@ -85,14 +90,18 @@ public class ServiceMain extends Service {
         mIsRunning = true;
         LogUtils.sendmsg(this, "onCreate: 服务启动", true);
         LogUtils.show("服务启动");
+
         try {
             //LogUtils.sendmsg(this, "onCreate: 尝试连接" + wsUrl);
 //            LogUtils.sendmsg(this, "onCreate: 尝试连接" + wsUrl);
             socketNum = 1;
+            ecs = EchoService.getInstance();
+
             if (useWithServer) {
+
+                ecs.init(ServiceMain.this);
 //                openSocket();
             }
-
         }catch (Exception e){
 //            Log.e("arik", "onCreate 出错:" + e.toString());
 //            LogUtils.sendmsg(this, "服务结果:"+ e.toString());
@@ -117,7 +126,11 @@ public class ServiceMain extends Service {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
+            if (!mIsRunning) {
+                ecs.stop();
+            }
             if (mIsRunning && System.currentTimeMillis() - lastHeartbeat > 20000) {//停止任务或WebSocket正常连接的时候，不会去轮循
+//                 ecs.init(ServiceMain.this);
 //                Log.e("arik", "handler添加二维码任务"+msg);
 
 //                mApiBll.checkQR(ServiceMain.this);
@@ -149,7 +162,7 @@ public class ServiceMain extends Service {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
+        ecs.stop();
         LogUtils.show("服务被杀死");
         Intent intent = new Intent(this.getApplicationContext(), ServiceMain.class);
         this.startService(intent);

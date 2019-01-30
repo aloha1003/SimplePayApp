@@ -120,13 +120,34 @@
     </android.support.design.widget.TextInputLayout>
 
     <android.support.design.widget.TextInputLayout
+        android:id="@+id/edt_act_main_user_union"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="12dp"
+        android:layout_marginRight="12dp"
+        android:layout_marginTop="20dp"
+        app:layout_constraintLeft_toRightOf="@id/edt_act_main_user_wechat"
+        app:layout_constraintRight_toRightOf="parent"
+
+        app:layout_constraintTop_toBottomOf="@+id/edt_act_main_user_alipay">
+
+        <android.support.v7.widget.AppCompatEditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:hint="雲閃付帳號別名"
+            android:singleLine="true"
+            android:text="2088xxxx" />
+    </android.support.design.widget.TextInputLayout>
+
+    <android.support.design.widget.TextInputLayout
         android:id="@+id/edt_act_main_alipay_current_amount"
         android:layout_width="372dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="40dp"
         android:layout_marginRight="20dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/edt_act_main_user_alipay">
+        app:layout_constraintTop_toBottomOf="@id/edt_act_main_user_union">
 
         <android.support.v7.widget.AppCompatEditText
             android:layout_width="349dp"
@@ -157,6 +178,7 @@
         android:layout_marginStart="8dp"
         android:layout_marginTop="28dp"
         android:onClick="clsWechatPay"
+
         android:text="启动微信收款"
         android:visibility="gone"
         app:layout_constraintEnd_toStartOf="@+id/guideline2"
@@ -171,9 +193,9 @@
         android:layout_marginTop="28dp"
 
         android:text="启动支付宝"
-        app:layout_constraintEnd_toStartOf="@+id/guideline3"
+        app:layout_constraintEnd_toStartOf="@+id/guideline2"
         app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@+id/guideline2"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/btn_submit" />
 
     <Button
@@ -184,7 +206,6 @@
         android:layout_marginTop="28dp"
         android:onClick="clsUnionpayPay"
         android:text="启动云闪付"
-        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="@+id/barrier"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@+id/guideline3"

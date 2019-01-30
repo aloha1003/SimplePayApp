@@ -31,6 +31,7 @@ import android.widget.Toast;
 
 import com.hdl.logcatdialog.LogcatDialog;
 import com.sjk.simplepay.ActMain;
+import com.sjk.simplepay.EchoService;
 import com.sjk.simplepay.HookMain;
 import com.sjk.simplepay.ServiceMain;
 import com.sjk.simplepay.ServiceProtect;
@@ -61,6 +62,7 @@ public class ConfigureFragment extends Fragment {
     public static  EditText mEdtUserWechat;
 
     public static  EditText mEdtUserAlipay;
+    public static  EditText mEdtUserunion;
     public static  EditText mEdtUserAlipayCurrentAmount;
 
     private Button mBtnSubmit;
@@ -70,6 +72,7 @@ public class ConfigureFragment extends Fragment {
     private Button mBtnAlipay;
 
     private Button mBtnUnionpay;
+//    public  static EchoService ecs;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -89,6 +92,7 @@ public class ConfigureFragment extends Fragment {
         mEdtUserWechat = ((TextInputLayout) getView().findViewById(R.id.edt_act_main_user_wechat)).getEditText();
         mEdtUserAlipay = ((TextInputLayout) getView().findViewById(R.id.edt_act_main_user_alipay)).getEditText();
         mEdtUserAlipayCurrentAmount = ((TextInputLayout) getView().findViewById(R.id.edt_act_main_alipay_current_amount)).getEditText();
+        mEdtUserunion = ((TextInputLayout) getView().findViewById(R.id.edt_act_main_user_union)).getEditText();
         mBtnSubmit = getView().findViewById(R.id.btn_submit);
         mBtnSubmit.setOnClickListener(btnClickListen);
 
@@ -100,6 +104,9 @@ public class ConfigureFragment extends Fragment {
         mBtnUnionpay.setOnClickListener(btnClickListen);
         ((TextView) getView().findViewById(R.id.txt_version)).setText("Ver：" + BuildConfig.VERSION_NAME);
         getPermissions();
+
+//        ecs = EchoService.getInstance();
+//        ecs.init(getContext());
     }
     private Button.OnClickListener btnClickListen = new Button.OnClickListener() {
         @Override
@@ -219,6 +226,8 @@ public class ConfigureFragment extends Fragment {
                 .setUserWechat(mEdtUserWechat.getText().toString());
         Configer.getInstance()
                 .setUserAlipay(mEdtUserAlipay.getText().toString());
+        Configer.getInstance()
+                .setUser_unionpay(mEdtUserunion.getText().toString());
         //更新餘額
         Configer.getInstance()
                 .setCurrentAmount(mEdtUserAlipayCurrentAmount.getText().toString());
