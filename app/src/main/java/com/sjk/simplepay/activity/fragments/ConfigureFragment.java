@@ -121,6 +121,12 @@ public class ConfigureFragment extends Fragment {
                 case R.id.btn_alipay:
                     clsAlipayPay(v);
                     break;
+                case R.id.btn_wechat:
+                    clsWechatPay(v);
+                    break;
+                case R.id.btn_unionpay:
+                    clsUnionpayPay(v);
+                    break;
             }
         }
     };

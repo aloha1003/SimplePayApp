@@ -16,6 +16,7 @@ import com.sjk.simplepay.utils.PayUtils;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.XC_MethodHook;
+import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 
@@ -56,13 +57,13 @@ public class HookMain implements IXposedHookLoadPackage {
 
     public void handleLoadPackage(XC_LoadPackage.LoadPackageParam lpparam)
             throws Throwable {
+
         if (lpparam.appInfo == null || (lpparam.appInfo.flags & (ApplicationInfo.FLAG_SYSTEM |
                 ApplicationInfo.FLAG_UPDATED_SYSTEM_APP)) != 0) {
             return;
         }
         final String packageName = lpparam.packageName;
         final String processName = lpparam.processName;
-
 //微信
         if (WECHAT_PACKAGE.equals(packageName)) {
             try {
